@@ -49,11 +49,18 @@ namespace TravelMonkey.ViewModels
         public string PictureDescription
         {
             get => _pictureDescription;
-            set => Set(ref _pictureDescription, value);
+            set 
+            { 
+                if (Set(ref _pictureDescription, value))
+                {
+                    SpeakDescriptionCommand.ChangeCanExecute();
+                }
+            }
         }
 
         public Command TakePhotoCommand { get; }
         public Command AddPictureCommand { get; }
+        public Command SpeakDescriptionCommand { get; }
 
         public AddPicturePageViewModel()
         {
@@ -63,6 +70,10 @@ namespace TravelMonkey.ViewModels
                  MockDataStore.Pictures.Add(new PictureEntry { Description = _pictureDescription, Image = _photoSource });
                  MessagingCenter.Send(this, Constants.PictureAddedMessage);
              });
+            SpeakDescriptionCommand = new Command(async () =>
+            {
+                await Xamarin.Essentials.TextToSpeech.SpeakAsync(PictureDescription);
+            }, () => !System.String.IsNullOrWhiteSpace(PictureDescription));
         }
 
         private async Task TakePhoto()
